@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Presente</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Detalhes do Presente</h1>
+  <h2 id="count">Carregando informações...</h2>
+  <p id="pix-info">Chave Pix: <span id="chavePix"></span></p>
+  <div id="confirmar-container" style="margin-top: 20px;"></div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://nmpuajpeurztkfjpozcd.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcHVhanBldXJ6dGtmanBvemNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzMDY1OTQsImV4cCI6MjA2Mzg4MjU5NH0.yw1-0eBNPk89jPKFDFmkqc7athGYql71ZR-TlIduZOw"
+    );
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+
+    async function carregarPresente() {
+      let { data, error } = await supabase
+        .from("presentes")
+        .select("acessos, limite")
+        .eq("id", id)
+        .single();
+
+      if (error || !data) {
+        document.body.innerHTML = "<h2>Erro ao carregar presente.</h2>";
+        return;
+      }
+
+      let acessos = Number(data.acessos || 0);
+      let limite = data.limite === null || data.limite === 0 ? Infinity : Number(data.limite);
+
+      exibirStatus(acessos, limite);
+
+      if (acessos < limite) {
+        const botao = document.createElement("button");
+        botao.textContent = "🎁 Confirmar meu presente";
+        botao.style.padding = "10px 20px";
+        botao.style.fontSize = "16px";
+        botao.style.marginTop = "10px";
+        botao.onclick = async () => {
+          const novo = acessos + 1;
+          await supabase.from("presentes").update({ acessos: novo }).eq("id", id);
+          location.reload();
+        };
+        document.getElementById("confirmar-container").appendChild(botao);
+      }
+    }
+
+    function exibirStatus(acessos, limite) {
+      document.getElementById("count").innerHTML = `Este presente foi acessado <strong>${acessos}/${limite === Infinity ? "∞" : limite}</strong> vezes.`;
+
+      const pixInfo = document.getElementById("pix-info");
+      const chavePix = document.getElementById("chavePix");
+
+      if (acessos >= limite) {
+        const aviso = document.createElement("p");
+        aviso.textContent = "⚠️ Este presente está bloqueado por atingir o limite de acessos.";
+        aviso.style.color = "red";
+        aviso.style.fontWeight = "bold";
+        aviso.style.marginTop = "20px";
+        document.body.insertBefore(aviso, document.getElementById("count"));
+
+        if (pixInfo) pixInfo.style.display = "none";
+      } else {
+        if (pixInfo) pixInfo.style.display = "block";
+        chavePix.textContent = "fiuzajuca2102@gmail.com";
+      }
+    }
+
+    carregarPresente();
+  </script>
+</body>
+</html>

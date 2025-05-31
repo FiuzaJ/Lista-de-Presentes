@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Presentes</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://nmpuajpeurztkfjpozcd.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcHVhanBldXJ6dGtmanBvemNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzMDY1OTQsImV4cCI6MjA2Mzg4MjU5NH0.yw1-0eBNPk89jPKFDFmkqc7athGYql71ZR-TlIduZOw"
+    );
+  </script>
+</head>
+<body>
+  <h1>Charraiá - Davyla e Guilherme</h1>
+  <p>O nosso charraiá tá chegando e ficamos muito felizes em ter vocês com a gente!<br>
+  Se quiserem nos ajudar com um mimo, preparamos uma listinha com muito carinho.<br>
+  Toda contribuição será recebida com gratidão e muito amor!</p>
+
+  <div id="presentes" class="presentes-container"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { data: presentes, error } = await supabase
+        .from("presentes")
+        .select("id, acessos, limite, nome, imagem, valor");
+
+      if (error || !presentes) {
+        document.getElementById("presentes").innerHTML = "<p>Erro ao carregar presentes.</p>";
+        return;
+      }
+
+      const container = document.getElementById("presentes");
+      const principais = presentes.filter(p => p.id !== 7);
+      const especial = presentes.find(p => p.id === 7);
+
+      const todosLimitados = principais.every(p => p.acessos >= p.limite);
+      const mostrarPresentes = todosLimitados ? [especial] : principais;
+
+      for (const p of mostrarPresentes) {
+        const div = document.createElement("div");
+        div.className = "presente";
+        div.onclick = () => window.location.href = `presente.html?id=${p.id}`;
+        div.innerHTML = `
+          <img src="${p.imagem || 'img/default.png'}" alt="Presente ${p.id}">
+          <h2>${p.nome}</h2>
+          <p class="valor">${p.valor || ''}</p>
+          <button>Acessar</button>
+        `;
+        container.appendChild(div);
+      }
+    });
+  </script>
+  <p class="txtbaixo">Ao acessar o presente, e realizar o pagamento, pressionar em <br> *CONFIRMAR MEU PRESENTE* <br> Para que seja contabilizado o seu acesso. <br> Desde já agradecemos pelo carinho de todos!</p>
+  <footer>Desenvolvido por Guilherme Fiuza</footer>
+</body>
+</html>
